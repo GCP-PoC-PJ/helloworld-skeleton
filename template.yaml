@@ -7,7 +7,7 @@ metadata:
   tags:
     - recommended
 spec:
-  owner: user:default/naoto-kondo-086
+  owner: group:default/osd-clusteradmin
   type: website
 
   parameters:
