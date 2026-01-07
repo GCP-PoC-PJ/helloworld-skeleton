@@ -19,9 +19,9 @@ jobs:
       contents: read
 
     env:
-      AWS_ACCOUNT_ID: ${{ "${{" }} secrets.AWS_ACCOUNT_ID }}
-      TECHDOCS_S3_BUCKET_NAME: ${{ "${{" }} secrets.TECHDOCS_BUCKET_NAME }}
-      AWS_REGION: ${{ "${{" }} secrets.AWS_REGION }}
+      GCP_WIP_PROVIDER: ${{ secrets.GCP_WIP_PROVIDER }}
+      GSA_EMAIL: ${{ secrets.GCP_SA_EMAIL }}
+      TECHDOCS_GCS_BUCKET_NAME: ${{ secrets.TECHDOCS_BUCKET_NAME }}
       ENTITY_NAMESPACE: 'default'
       ENTITY_KIND: 'Component'
       ENTITY_NAME: ${{ values.app_name }}
@@ -31,12 +31,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth'
         with:
-          role-to-assume: arn:aws:iam::${{ "${{" }} env.AWS_ACCOUNT_ID }}:role/GitHubActionsTechDocsRole
-          role-session-name: GitHubActionsSession
-          aws-region: ${{ "${{" }} env.AWS_REGION }}
+          workload_identity_provider: ${{ env.GCP_WIP_PROVIDER }}
+          service_account: ${{ env.GSA_EMAIL }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -58,4 +58,4 @@ jobs:
         run: techdocs-cli generate --no-docker --verbose
 
       - name: Publish docs site
-        run: techdocs-cli publish --publisher-type awsS3 --storage-name $TECHDOCS_S3_BUCKET_NAME --entity $ENTITY_NAMESPACE/$ENTITY_KIND/$ENTITY_NAME
+        run: techdocs-cli publish --publisher-type googleGcs --storage-name $TECHDOCS_GCS_BUCKET_NAME --entity $ENTITY_NAMESPACE/$ENTITY_KIND/$ENTITY_NAME
